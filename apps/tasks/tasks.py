@@ -32,6 +32,9 @@ from .tasks_system import (
     submit_task_to_dispatcher,
 )
 
+#Dashboard reports tasks
+from ..dashboard_reports.tasks import collect_dashboard_reports_data
+
 logger = logging.getLogger(__name__)
 
 # Task configuration for dispatcherd
@@ -48,6 +51,8 @@ TASK_FUNCTIONS = {
     "daily_metrics_rollup": daily_metrics_rollup,
     "daily_anonymize_and_prepare": daily_anonymize_and_prepare,
     "send_anonymized_to_segment": send_anonymized_to_segment,
+    # Dashboard reports
+    "collect_dashboard_reports_data": collect_dashboard_reports_data,
 }
 
 # Enhanced task metadata for dashboard display
@@ -246,6 +251,34 @@ TASK_METADATA = {
             {"name": "Send batch of 10", "data": {"max_payloads": 10}},
         ],
     },
+    "collect_dashboard_reports_data": {
+        "category": "Dashboard Reports",
+        "description": "Collect data for automation-reports dashboard (job templates, top projects/users) with configurable date range",
+        "parameters": {
+            "start_date": {
+                "type": "string",
+                "description": "Start date for collection (ISO format, defaults to 30 days ago)",
+                "pattern": "datetime"
+            },
+            "end_date": {
+                "type": "string",
+                "description": "End date for collection (ISO format, defaults to now)",
+                "pattern": "datetime",
+            },
+            "incremental": {
+                "type": "boolean",
+                "default": True,
+                "description":
+                    "If true, use last collection timestamp as start_date and now() as end date (recommended for regular collections to avoid gaps/overlaps)",
+            }
+        },
+        "examples": [
+            {"name": "Default collection (last 30 days)", "data": {}},
+            {"name": "Regular collection ()", "data": {"incremental": "true"}},
+            {"name": "Custom date range", "data": {"start_date": "2024-01-30T00:00:00Z", "end_date": "2024-01-31T23:59:59Z"}},
+            {"name": "Last 7 days", "data": {"start_date": "2024-01-24T00:00:00Z", "end_date": "2024-01-31T00:00:00Z"}},
+        ],
+    }
 }
 
 # Explicit exports for better IDE support
@@ -268,4 +301,7 @@ __all__ = [
     # Configuration
     "TASK_FUNCTIONS",
     "TASK_METADATA",
+    # Dashboard reports
+    "collect_dashboard_reports_data"
+
 ]

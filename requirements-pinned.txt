@@ -118,12 +118,13 @@ django==5.2.7 \
     #   django-crum
     #   django-extensions
     #   django-flags
+    #   django-generate-series
     #   django-prometheus
     #   djangorestframework
     #   drf-spectacular
     #   metrics-service
     #   metrics-utility
-django-ansible-base @ git+https://github.com/ansible/django-ansible-base@7596a0cc12785eff647af4f7aef80c77da33eed8
+django-ansible-base @ git+https://github.com/ansible/django-ansible-base@1b7ae7085675ca2c4a778e17dc5b61e619087fcb
     # via metrics-service
 django-crum==0.7.9 \
     --hash=sha256:037cc8b822975bb1d41cd24269b59a512cc77448fadc3f34ab9a17b229b4b471 \
@@ -137,6 +138,10 @@ django-flags==5.1.0 \
     --hash=sha256:47f33efba238fe83a2c1f6f5764147fe62d770039f64b3a039e0e461bbc36e79 \
     --hash=sha256:6cfb15151f94d13de1a497901fc1dd4f0510251e5ec23a6732d674824f499e72
     # via django-ansible-base
+django-generate-series==2026.2.1 \
+    --hash=sha256:900b26b46f501f4388763f3ee4a2fed6c2a3a66836e988224d0a9948180ffd2c \
+    --hash=sha256:9e0a12fa13ed706529b4a13f8766c822a6c67b40db50ee5ad43e14d7777bf967
+    # via metrics-service
 django-prometheus==2.4.1 \
     --hash=sha256:073628243d2a6de6a8a8c20e5b512872dfb85d66e1b60b28bcf1eca0155dad95 \
     --hash=sha256:7fe5af7f7c9ad9cd8a429fe0f3f1bf651f0e244f77162147869eab7ec09cc5e7

@@ -32,6 +32,7 @@ project_applications = [
     "apps.dynamic_settings",
     "apps.tasks",
     "apps.dashboard",
+    "apps.dashboard_reports", # Dashboard data for automation-reports integration
 ]
 
 # Final state of the INSTALLED_APPS that will merge with the rest of the settings
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     *dab_applications,
     *project_applications,
     *extra_applications,
+    "django_generate_series" # Dashboard data for automation-reports integration
 ]
 
 # Enable debug mode
@@ -121,7 +123,9 @@ DATABASES = {
 # and only used when not already changed in the settings DB table
 # also used by tasks - unless set in the db.
 FEATURE_ENABLED = {
-    "ANONYMIZED_DATA_COLLECTION": True,  # Controls all metrics collection, rollup, anonymization, and sending
+    "ANONYMIZED_DATA_COLLECTION": True,
+    "METRICS_COLLECTION_ENABLED": False,
+    "DASHBOARD_COLLECTION_ENABLED": False,  # automation-reports integration (customer opt-in)
 }
 
 # Used when generating API URLs in views, example "/api/metrics/"; None means "/api/"
