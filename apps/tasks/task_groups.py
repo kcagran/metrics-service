@@ -271,12 +271,32 @@ HOURLY_METRICS_GROUP = TaskGroup(
     ],
 )
 
+# Dashboard Collection Group - automation-reports integration
+DASHBOARD_COLLECTION_GROUP = TaskGroup(
+    name="dashboard_collection",
+    description="Automation-reports dashboard data collection (SQL-based, separate from anonymization)",
+    enabled_setting="ENABLE_DASHBOARD_COLLECTION",
+    default_enabled=False,  # Customer opt-in required
+    tasks=[
+        {
+            "task_id": "daily_dashboard_collection",
+            "function": "collect_dashboard_reports_data",
+            "cron": "0 1 * * *",  # Daily at 1:00 AM
+            "args": {"incremental": True},  # Uses incremental collection by default to minimize load
+            "enabled": True,
+            "description": "Daily dashboard report collection (last 30 days)",
+            "category": "dashboard_collection",
+        },
+    ],
+)
+
 # Registry of all task groups
 TASK_GROUPS = [
     SYSTEM_TASKS_GROUP,
     ANONYMIZED_DATA_GROUP,
     METRICS_COLLECTION_GROUP,
     HOURLY_METRICS_GROUP,
+    DASHBOARD_COLLECTION_GROUP
 ]
 
 
