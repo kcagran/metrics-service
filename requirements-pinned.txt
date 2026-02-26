@@ -118,6 +118,7 @@ django==5.2.7 \
     #   django-crum
     #   django-extensions
     #   django-flags
+    #   django-generate-series
     #   django-prometheus
     #   djangorestframework
     #   drf-spectacular
@@ -137,6 +138,10 @@ django-flags==5.1.0 \
     --hash=sha256:47f33efba238fe83a2c1f6f5764147fe62d770039f64b3a039e0e461bbc36e79 \
     --hash=sha256:6cfb15151f94d13de1a497901fc1dd4f0510251e5ec23a6732d674824f499e72
     # via django-ansible-base
+django-generate-series==2026.2.1 \
+    --hash=sha256:900b26b46f501f4388763f3ee4a2fed6c2a3a66836e988224d0a9948180ffd2c \
+    --hash=sha256:9e0a12fa13ed706529b4a13f8766c822a6c67b40db50ee5ad43e14d7777bf967
+    # via metrics-service
 django-prometheus==2.4.1 \
     --hash=sha256:073628243d2a6de6a8a8c20e5b512872dfb85d66e1b60b28bcf1eca0155dad95 \
     --hash=sha256:7fe5af7f7c9ad9cd8a429fe0f3f1bf651f0e244f77162147869eab7ec09cc5e7
@@ -198,9 +203,7 @@ kubernetes==34.1.0 \
     --hash=sha256:8fe8edb0b5d290a2f3ac06596b23f87c658977d46b5f8df9d0f4ea83d0003912 \
     --hash=sha256:bffba2272534e224e6a7a74d582deb0b545b7c9879d2cd9e4aae9481d1f2cc2a
     # via metrics-utility
-metrics-utility==0.7.20251112 \
-    --hash=sha256:47545d25e293c1e05ff0b320be18c68c8bb2c46191dc8866b09060fa4f37acfb \
-    --hash=sha256:bbaa329030ab80ada17f54d1655bc7c9ca251c6f0fa7be2e1d2ade66a584b83e
+metrics-utility @ git+https://github.com/kcagran/metrics-utility.git@6b0237cd920c7c1895b3e65d2497a2ee7c069b7c
     # via metrics-service
 numpy==2.3.3 \
     --hash=sha256:067e3d7159a5d8f8a0b46ee11148fc35ca9b21f61e3c49fbd0a027450e65a33b \
@@ -246,14 +249,14 @@ prometheus-client==0.23.1 \
     --hash=sha256:6ae8f9081eaaaf153a2e959d2e6c4f4fb57b12ef76c8c7980202f1e57b48b2ce \
     --hash=sha256:dd1913e6e76b59cfe44e7a4b83e01afc9873c1bdfd2ed8739f1e76aeca115f99
     # via django-prometheus
-psycopg==3.2.10 \
-    --hash=sha256:0bce99269d16ed18401683a8569b2c5abd94f72f8364856d56c0389bcd50972a \
-    --hash=sha256:ab5caf09a9ec42e314a21f5216dbcceac528e0e05142e42eea83a3b28b320ac3
+psycopg==3.3.0 \
+    --hash=sha256:68950107fb8979d34bfc16b61560a26afe5d8dab96617881c87dfff58221df09 \
+    --hash=sha256:c9f070afeda682f6364f86cd77145f43feaf60648b2ce1f6e883e594d04cbea8
     # via
     #   metrics-service
     #   metrics-utility
-psycopg-c==3.2.10 ; implementation_name != 'pypy' \
-    --hash=sha256:30183897f5fe7ff4375b7dfcec9d44dfe8a5e009080addc1626889324a9eb1ed
+psycopg-c==3.3.0 ; implementation_name != 'pypy' \
+    --hash=sha256:07372de01bf18b3ebec726d6bbeed73be1af40b342c364695e80e11ff75607e3
     # via psycopg
 psycopg2==2.9.11 \
     --hash=sha256:964d31caf728e217c697ff77ea69c2ba0865fa41ec20bb00f0977e62fdcc52e3 \

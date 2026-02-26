@@ -73,6 +73,7 @@ django==5.2.7
     #   django-crum
     #   django-extensions
     #   django-flags
+    #   django-generate-series
     #   django-prometheus
     #   djangorestframework
     #   drf-spectacular
@@ -94,6 +95,10 @@ django-flags==5.1.0
     # via
     #   -r requirements-pinned.txt
     #   django-ansible-base
+django-generate-series==2026.2.1
+    # via
+    #   -r requirements-pinned.txt
+    #   metrics-service
 django-prometheus==2.4.1
     # via
     #   -r requirements-pinned.txt
@@ -151,7 +156,7 @@ kubernetes==34.1.0
     # via
     #   -r requirements-pinned.txt
     #   metrics-utility
-metrics-utility==0.7.20251112
+metrics-utility @ git+https://github.com/kcagran/metrics-utility.git@6b0237cd920c7c1895b3e65d2497a2ee7c069b7c
     # via
     #   -r requirements-pinned.txt
     #   metrics-service
@@ -185,12 +190,12 @@ prometheus-client==0.23.1
     # via
     #   -r requirements-pinned.txt
     #   django-prometheus
-psycopg==3.2.10
+psycopg==3.3.0
     # via
     #   -r requirements-pinned.txt
     #   metrics-service
     #   metrics-utility
-psycopg-c==3.2.10
+psycopg-c==3.3.0
     # via
     #   -r requirements-pinned.txt
     #   psycopg

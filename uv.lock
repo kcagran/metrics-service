@@ -405,6 +405,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-generate-series"
+version = "2026.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4a/26/5c87218e0ba903c2115f13b3dc38dd8fe41bedef9ad827429a004834d2d9/django_generate_series-2026.2.1.tar.gz", hash = "sha256:9e0a12fa13ed706529b4a13f8766c822a6c67b40db50ee5ad43e14d7777bf967", size = 15476, upload-time = "2026-02-13T06:01:49.863Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/36/87/5a4d50167af83b325ab778b8f35b8934dac7d8547ae9e3c7eced8d8ee873/django_generate_series-2026.2.1-py3-none-any.whl", hash = "sha256:900b26b46f501f4388763f3ee4a2fed6c2a3a66836e988224d0a9948180ffd2c", size = 13522, upload-time = "2026-02-13T06:01:48.709Z" },
+]
+
+[[package]]
 name = "django-prometheus"
 version = "2.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -745,6 +757,7 @@ dependencies = [
     { name = "django" },
     { name = "django-ansible-base", extra = ["api-documentation", "feature-flags", "jwt-consumer", "resource-registry"] },
     { name = "django-extensions" },
+    { name = "django-generate-series" },
     { name = "django-prometheus" },
     { name = "djangorestframework" },
     { name = "dynaconf" },
@@ -823,6 +836,7 @@ requires-dist = [
     { name = "django-auth-ldap", marker = "extra == 'ldap'", specifier = ">=5.2.0" },
     { name = "django-debug-toolbar", marker = "extra == 'dev'", specifier = ">=4.2" },
     { name = "django-extensions", specifier = ">=3.2" },
+    { name = "django-generate-series", specifier = ">=2026.2.1" },
     { name = "django-prometheus", specifier = ">=2.3.1" },
     { name = "django-stubs", extras = ["compatible-mypy"], marker = "extra == 'dev'", specifier = ">=4.2" },
     { name = "djangorestframework", specifier = ">=3.15" },
@@ -832,7 +846,7 @@ requires-dist = [
     { name = "factory-boy", marker = "extra == 'test'", specifier = ">=3.3" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=5.12" },
     { name = "ldap-filter", marker = "extra == 'ldap'", specifier = ">=1.0.1" },
-    { name = "metrics-utility", specifier = ">=0.7.20251112" },
+    { name = "metrics-utility", git = "https://github.com/kcagran/metrics-utility.git?rev=dashboard-collectors" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.5" },
     { name = "packaging", specifier = ">=20.0" },
     { name = "pip", specifier = ">=25.2" },
@@ -876,8 +890,8 @@ dev = [
 
 [[package]]
 name = "metrics-utility"
-version = "0.7.20251112"
-source = { registry = "https://pypi.org/simple" }
+version = "0.7.0.dev0"
+source = { git = "https://github.com/kcagran/metrics-utility.git?rev=dashboard-collectors#6b0237cd920c7c1895b3e65d2497a2ee7c069b7c" }
 dependencies = [
     { name = "boto3" },
     { name = "botocore" },
@@ -890,10 +904,6 @@ dependencies = [
     { name = "requests" },
     { name = "segment-analytics-python" },
     { name = "setuptools" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/13/7ee41c68c1112a6948c0c3d8b311022c4bc4d4a7b313c3626271cded1e63/metrics_utility-0.7.20251112.tar.gz", hash = "sha256:47545d25e293c1e05ff0b320be18c68c8bb2c46191dc8866b09060fa4f37acfb", size = 848860, upload-time = "2025-11-12T13:33:16.171Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/d4/ee87c6c61a3b921a68fa6b9f7933eff483c318555157931d21a6135a6b72/metrics_utility-0.7.20251112-py3-none-any.whl", hash = "sha256:bbaa329030ab80ada17f54d1655bc7c9ca251c6f0fa7be2e1d2ade66a584b83e", size = 353695, upload-time = "2025-11-12T13:33:14.435Z" },
 ]
 
 [[package]]
@@ -1089,15 +1099,15 @@ wheels = [
 
 [[package]]
 name = "psycopg"
-version = "3.2.10"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "typing-extensions" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a9/f1/0258a123c045afaf3c3b60c22ccff077bceeb24b8dc2c593270899353bd0/psycopg-3.2.10.tar.gz", hash = "sha256:0bce99269d16ed18401683a8569b2c5abd94f72f8364856d56c0389bcd50972a", size = 160380, upload-time = "2025-09-08T09:13:37.775Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/96/bd/06dc36aeda16ffff129d03d90e75fd5e24222a719adcef37cd07f1926b06/psycopg-3.3.0.tar.gz", hash = "sha256:68950107fb8979d34bfc16b61560a26afe5d8dab96617881c87dfff58221df09", size = 165593, upload-time = "2025-12-01T11:35:07.076Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4a/90/422ffbbeeb9418c795dae2a768db860401446af0c6768bc061ce22325f58/psycopg-3.2.10-py3-none-any.whl", hash = "sha256:ab5caf09a9ec42e314a21f5216dbcceac528e0e05142e42eea83a3b28b320ac3", size = 206586, upload-time = "2025-09-08T09:07:50.121Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/5d/3569bab5a92f33e4a1b3c3c16816718ef5cc306f55f3965a8cb630c496ac/psycopg-3.3.0-py3-none-any.whl", hash = "sha256:c9f070afeda682f6364f86cd77145f43feaf60648b2ce1f6e883e594d04cbea8", size = 212759, upload-time = "2025-12-01T11:21:15.91Z" },
 ]
 
 [package.optional-dependencies]
@@ -1107,9 +1117,9 @@ c = [
 
 [[package]]
 name = "psycopg-c"
-version = "3.2.10"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/dd/f8/35709eeaa8e5057e0c9ca80929e2d025abcfcbee64f6bc55f40329e81e39/psycopg_c-3.2.10.tar.gz", hash = "sha256:30183897f5fe7ff4375b7dfcec9d44dfe8a5e009080addc1626889324a9eb1ed", size = 601626, upload-time = "2025-09-08T09:13:40.155Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e3/96/5a86ed5c23911ca62b4745529a6ead68f504f6ae717f98527c979290e823/psycopg_c-3.3.0.tar.gz", hash = "sha256:07372de01bf18b3ebec726d6bbeed73be1af40b342c364695e80e11ff75607e3", size = 623980, upload-time = "2025-12-01T11:34:31.923Z" }
 
 [[package]]
 name = "psycopg2"
