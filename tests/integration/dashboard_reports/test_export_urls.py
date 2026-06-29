@@ -189,6 +189,14 @@ class TestExportEndpointResponseContract:
     def test_invalid_format_returns_400(self):
         response = self.client.get(
             "/api/v1/dashboard_reports/report/export/",
+            data={"period": "last_7_days", "tz": "UTC", "report_type": "summary", "export_format": "xml"},
+        )
+        assert response.status_code == 400
+
+    def test_pdf_format_rejected(self):
+        """pdf is no longer valid; html is the print-ready alternative."""
+        response = self.client.get(
+            "/api/v1/dashboard_reports/report/export/",
             data={"period": "last_7_days", "tz": "UTC", "report_type": "summary", "export_format": "pdf"},
         )
         assert response.status_code == 400

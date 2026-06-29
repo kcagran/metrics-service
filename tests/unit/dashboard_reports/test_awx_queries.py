@@ -91,6 +91,22 @@ class TestAWXQueries:
         assert clause == " WHERE z.name ilike %s ESCAPE E'\\\\' AND z.id = %s"
         assert params == ["%bar%", 7]
 
+    def test_build_where_clause_ids(self):
+        clause, params = awx_queries._build_where_clause("ujt.", None, None, ids=[1, 2, 3])
+        assert clause == " WHERE ujt.id IN (%s, %s, %s)"
+        assert params == [1, 2, 3]
+
+    def test_build_where_clause_ids_empty(self):
+        clause, params = awx_queries._build_where_clause("", None, None, ids=[])
+        assert clause == ""
+        assert params == []
+
+    def test_build_where_clause_ids_with_pk(self):
+        clause, params = awx_queries._build_where_clause("", None, 5, ids=[10, 20])
+        assert "id = %s" in clause
+        assert "id IN (%s, %s)" in clause
+        assert params == [5, 10, 20]
+
     def test_format_id_name_rows(self):
         rows = [(1, "A"), (2, "B")]
         result = awx_queries.format_id_name_rows(rows)

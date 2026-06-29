@@ -1,0 +1,62 @@
+{% extends "dashboard_reports/base.html" %}
+{% load humanize %}
+{% block content %}
+
+<div class="header-table" style="margin-bottom: 24px;">
+  <div class="title">Automation Dashboard Report — Trends</div>
+  <div class="description">
+    Job execution trends grouped by {{ granularity }} for the selected date range.
+  </div>
+</div>
+
+<div class="filter-table">
+  <div>
+    <div class="badge">Period: {{ start_date }} – {{ end_date }}</div>
+    <div class="badge">Granularity: {{ granularity }}</div>
+    {% for filter in filters.values %}
+    <div class="badge">{{ filter.name }}: {{ filter.values }}</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="chart-row">
+  <div class="chart-cell">
+    <div class="chart-card">
+      <div class="chart-title">Number of times jobs were run</div>
+      {{ job_chart_svg }}
+    </div>
+  </div>
+  <div class="chart-cell">
+    <div class="chart-card">
+      <div class="chart-title">Number of hosts jobs are running on</div>
+      {{ host_chart_svg }}
+    </div>
+  </div>
+</div>
+
+<table class="data-table">
+  <thead>
+  <tr>
+    <th scope="col" style="width: 20%">Date</th>
+    <th scope="col" style="width: 15%" class="numeric">Job executions</th>
+    <th scope="col" style="width: 15%" class="numeric">Successful runs</th>
+    <th scope="col" style="width: 15%" class="numeric">Failed runs</th>
+    <th scope="col" style="width: 20%" class="numeric">Total elapsed</th>
+    <th scope="col" style="width: 15%" class="numeric">Total hosts</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for row in rows %}
+  <tr>
+    <td style="width: 20%">{{ row.date }}</td>
+    <td style="width: 15%" class="numeric">{{ row.runs | intcomma }}</td>
+    <td style="width: 15%" class="numeric">{{ row.successful_runs | intcomma }}</td>
+    <td style="width: 15%" class="numeric">{{ row.failed_runs | intcomma }}</td>
+    <td style="width: 20%" class="numeric">{{ row.total_elapsed_str }}</td>
+    <td style="width: 15%" class="numeric">{{ row.total_hosts | intcomma }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

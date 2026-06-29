@@ -610,3 +610,55 @@ class TestDashboardReportViewSet:
         assert isinstance(response, Response)
         assert response.status_code == 200
         assert response.data["total_number_of_unique_hosts"] == 2
+
+
+@pytest.mark.unit
+class TestBuildFilterLabels:
+    def _make_viewset(self):
+        vs = DashboardReportViewSet()
+        vs.kwargs = {}
+        vs.request = MagicMock()
+        return vs
+
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_db_connection")
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_or_filter_options", return_value={})
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_filter_options", return_value={"organization": [1, 2]})
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.fetch_organizations")
+    def test_returns_label_for_matched_ids(self, mock_fetch_orgs, mock_filter, mock_or, mock_conn):
+        mock_fetch_orgs.return_value = ([{"id": 1, "name": "Org A"}, {"id": 2, "name": "Org B"}], 2)
+        vs = self._make_viewset()
+        result = vs._build_filter_labels(vs.request)
+        assert result["organization"]["name"] == "Organization"
+        assert "Org A" in result["organization"]["values"]
+        assert "Org B" in result["organization"]["values"]
+
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_db_connection")
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_or_filter_options", return_value={})
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_filter_options", return_value={})
+    def test_returns_empty_when_no_filters(self, mock_filter, mock_or, mock_conn):
+        vs = self._make_viewset()
+        result = vs._build_filter_labels(vs.request)
+        assert result == {}
+
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_db_connection")
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_or_filter_options", return_value={})
+    @patch(
+        "apps.dashboard_reports.viewsets.dashboard_report.get_filter_options", return_value={"organization": [99]}
+    )
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.fetch_organizations")
+    def test_skips_entry_when_no_items_returned(self, mock_fetch_orgs, mock_filter, mock_or, mock_conn):
+        mock_fetch_orgs.return_value = ([], 0)
+        vs = self._make_viewset()
+        result = vs._build_filter_labels(vs.request)
+        assert "organization" not in result
+
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_or_filter_options", return_value={})
+    @patch("apps.dashboard_reports.viewsets.dashboard_report.get_filter_options", return_value={"organization": [1]})
+    @patch(
+        "apps.dashboard_reports.viewsets.dashboard_report.get_db_connection",
+        side_effect=Exception("AWX not reachable"),
+    )
+    def test_returns_empty_on_awx_connection_error(self, mock_conn, mock_filter, mock_or):
+        vs = self._make_viewset()
+        result = vs._build_filter_labels(vs.request)
+        assert result == {}

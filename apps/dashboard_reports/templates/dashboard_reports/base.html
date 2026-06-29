@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>{{ inline_css }}</style>
+  <title>Automation Dashboard Report</title>
+</head>
+<body>
+<header>
+  {{ inline_logo }}
+</header>
+
+<div class="no-print" style="padding: 10px 10mm; background: #f5f5f5; border-bottom: 1px solid #d2d2d2; display: flex; align-items: center; gap: 12px;">
+  <button
+    onclick="window.print()"
+    style="padding: 8px 16px; font-size: 13px; cursor: pointer; background: #06c; color: #fff;
+           border: none; border-radius: 4px; font-family: inherit;">
+    Print / Save as PDF
+  </button>
+  <span style="font-size: 12px; color: #666;">In the print dialog, choose <strong>Save as PDF</strong> and enable <em>Background graphics</em> for best results.</span>
+</div>
+
+<div class="content">
+  {% block content %}
+  {% endblock %}
+</div>
+</body>
+</html>

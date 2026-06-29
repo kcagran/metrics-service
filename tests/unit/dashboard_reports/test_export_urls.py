@@ -243,6 +243,15 @@ class TestExportEndpointGeneral:
         )
         assert response.status_code == 400
 
+    def test_export_pdf_format_rejected(self, admin_client):
+        """pdf is no longer a valid export_format; html is the print-ready alternative."""
+        url = reverse("dashboard_reports:report-export")
+        response = admin_client.get(
+            url,
+            data={"period": "last_14_days", "tz": "UTC", "report_type": "summary", "export_format": "pdf"},
+        )
+        assert response.status_code == 400
+
     def test_export_empty_data_returns_headers_only(self, admin_client):
         """When no JobData exists the CSV should still contain the header row."""
         url = reverse("dashboard_reports:report-export")

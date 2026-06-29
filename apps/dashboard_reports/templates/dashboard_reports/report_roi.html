@@ -1,0 +1,66 @@
+{% extends "dashboard_reports/base.html" %}
+{% load humanize %}
+{% block content %}
+
+<div class="header-table" style="margin-bottom: 24px;">
+  <div class="title">Automation Dashboard Report — ROI</div>
+  <div class="description">
+    Return on investment summary for Ansible automation across the selected date range.
+  </div>
+</div>
+
+<div class="filter-table">
+  <div>
+    <div class="badge">Period: {{ start_date }} – {{ end_date }}</div>
+    {% for filter in filters.values %}
+    <div class="badge">{{ filter.name }}: {{ filter.values }}</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="details-table" style="width: 100%">
+  <div class="details-row">
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Cost savings</div>
+        <div class="value">{{ currency }}{{ cost_savings | floatformat:2 | intcomma }}</div>
+      </div>
+    </div>
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Time saved</div>
+        <div class="value">{{ time_saved_hours | floatformat:2 | intcomma }}h</div>
+      </div>
+    </div>
+  </div>
+  <div class="details-row">
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Automation cost</div>
+        <div class="value">{{ currency }}{{ automation_cost | floatformat:2 | intcomma }}</div>
+      </div>
+    </div>
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Manual cost equivalent</div>
+        <div class="value">{{ currency }}{{ manual_cost_equivalent | floatformat:2 | intcomma }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="details-row">
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">ROI</div>
+        <div class="value">{{ roi_percentage | floatformat:2 }}%</div>
+      </div>
+    </div>
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Automation value</div>
+        <div class="value">{{ currency }}{{ automation_value | floatformat:2 | intcomma }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

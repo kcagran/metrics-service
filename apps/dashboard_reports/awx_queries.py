@@ -29,7 +29,7 @@ class AWXQuery(enum.Enum):
     LABELS = "SELECT id, name FROM main_label"
 
 
-def _build_where_clause(join_alias: str, search_str: str | None, pk: Any) -> tuple[str, list[Any]]:
+def _build_where_clause(join_alias: str, search_str: str | None, pk: Any, ids: list[Any] | None = None) -> tuple[str, list[Any]]:
     """Build WHERE clause and parameters for SQL query."""
     where_clauses = []
     params = []
@@ -41,6 +41,10 @@ def _build_where_clause(join_alias: str, search_str: str | None, pk: Any) -> tup
     if pk is not None:
         where_clauses.append(f"{join_alias}id = %s")
         params.append(pk)
+    if ids:
+        placeholders = ", ".join(["%s"] * len(ids))
+        where_clauses.append(f"{join_alias}id IN ({placeholders})")
+        params.extend(ids)
     clause = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     return clause, params
 
@@ -75,11 +79,12 @@ def fetch_data_from_db(awx_query: AWXQuery, join_alias: str = "", **kwargs: Any)
     db_connection = kwargs.get("db_connection")
     search_str = kwargs.get("search_str")
     pk = kwargs.get("pk")
+    ids = kwargs.get("ids")
     limit = kwargs.get("limit")
     offset = kwargs.get("offset", 0)
 
     base_query = awx_query.value
-    where_clause, params = _build_where_clause(join_alias, search_str, pk)
+    where_clause, params = _build_where_clause(join_alias, search_str, pk, ids)
     order_clause = f" ORDER BY {join_alias}name"
 
     if limit is not None:

@@ -1,0 +1,140 @@
+{% extends "dashboard_reports/base.html" %}
+{% load humanize %}
+{% block content %}
+
+<div class="header-table" style="margin-bottom: 24px;">
+  <div class="title">Automation Dashboard Report — Summary</div>
+  <div class="description">
+    Cost and time savings achieved by automating Ansible jobs with the Ansible Automation Platform.
+  </div>
+</div>
+
+<div class="filter-table">
+  <div>
+    <div class="badge">Period: {{ start_date }} – {{ end_date }}</div>
+    {% for filter in filters.values %}
+    <div class="badge">{{ filter.name }}: {{ filter.values }}</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="details-table" style="width: 100%">
+  <div class="details-row">
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Successful jobs</div>
+        <div class="value">{{ details.total_number_of_successful_jobs | intcomma }}</div>
+      </div>
+    </div>
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Failed jobs</div>
+        <div class="value">{{ details.total_number_of_failed_jobs | intcomma }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="details-row">
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Total job runs</div>
+        <div class="value">{{ details.total_number_of_job_runs | intcomma }}</div>
+      </div>
+    </div>
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Hours of automation</div>
+        <div class="value">{{ details.total_hours_of_automation | floatformat:2 | intcomma }}h</div>
+      </div>
+    </div>
+  </div>
+  <div class="details-row">
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Cost of manual automation</div>
+        <div class="value">{{ currency }}{{ details.cost_of_manual_automation | floatformat:2 | intcomma }}</div>
+      </div>
+    </div>
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Cost of automated execution</div>
+        <div class="value">{{ currency }}{{ details.cost_of_automated_execution | floatformat:2 | intcomma }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="details-row">
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Total savings</div>
+        <div class="value">{{ currency }}{{ details.total_saving | floatformat:2 | intcomma }}</div>
+      </div>
+    </div>
+    <div class="details-cell">
+      <div class="card">
+        <div class="title">Total time saved</div>
+        <div class="value">{{ details.total_time_saving | floatformat:2 | intcomma }}h</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="chart-row">
+  <div class="chart-cell">
+    <div class="chart-card">
+      <div class="chart-title">Number of times jobs were run</div>
+      <div class="chart-summary">{{ details.total_number_of_job_runs | intcomma }}</div>
+      {{ job_chart_svg }}
+    </div>
+  </div>
+  <div class="chart-cell">
+    <div class="chart-card">
+      <div class="chart-title">Number of hosts jobs are running on</div>
+      <div class="chart-summary">{{ details.total_number_of_host_job_runs | intcomma }}</div>
+      {{ host_chart_svg }}
+    </div>
+  </div>
+</div>
+
+<table class="data-table">
+  <thead>
+  <tr>
+    {% if enable_template_creation_time %}
+    <th scope="col" style="width: 10%">Name</th>
+    {% else %}
+    <th scope="col" style="width: 20%">Name</th>
+    {% endif %}
+    <th scope="col" style="width: 10%" class="numeric">Job executions</th>
+    <th scope="col" style="width: 10%" class="numeric">Host executions</th>
+    <th scope="col" style="width: 10%" class="numeric">Time to execute manually (min)</th>
+    {% if enable_template_creation_time %}
+    <th scope="col" style="width: 10%" class="numeric">Time to create automation (min)</th>
+    {% endif %}
+    <th scope="col" style="width: 15%" class="numeric">Running time</th>
+    <th scope="col" style="width: 10%" class="numeric">Automated cost</th>
+    <th scope="col" style="width: 15%" class="numeric">Manual cost</th>
+    <th scope="col" style="width: 10%" class="numeric">Savings</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for row in table_data %}
+  <tr>
+    {% if enable_template_creation_time %}
+    <td style="width: 10%">{{ row.template_name }}</td>
+    {% else %}
+    <td style="width: 20%">{{ row.template_name }}</td>
+    {% endif %}
+    <td style="width: 10%" class="numeric">{{ row.runs | intcomma }}</td>
+    <td style="width: 10%" class="numeric">{{ row.num_hosts | intcomma }}</td>
+    <td style="width: 10%" class="numeric">{{ row.time_taken_manually_execute_minutes }}</td>
+    {% if enable_template_creation_time %}
+    <td style="width: 10%" class="numeric">{{ row.time_taken_create_automation_minutes }}</td>
+    {% endif %}
+    <td style="width: 15%" class="numeric">{{ row.elapsed_str }}</td>
+    <td style="width: 10%" class="numeric">{{ currency }}{{ row.automated_costs | floatformat:2 | intcomma }}</td>
+    <td style="width: 15%" class="numeric">{{ currency }}{{ row.manual_costs | floatformat:2 | intcomma }}</td>
+    <td style="width: 10%" class="numeric">{{ currency }}{{ row.savings | floatformat:2 | intcomma }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
