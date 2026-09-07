@@ -381,3 +381,100 @@ class DashboardTelemetrySerializer(serializers.ModelSerializer):
             "cache_hit_rate",
             "success",
         ]
+
+
+class FeaturedTemplateSerializer(serializers.Serializer):
+    """Most-used job template by successful run count in the window."""
+
+    id = serializers.IntegerField(allow_null=True, help_text="AWX template ID")
+    name = serializers.CharField(allow_null=True, help_text="Template name")
+    run_count = serializers.IntegerField(help_text="Successful runs in the window")
+
+
+class StreakDaySerializer(serializers.Serializer):
+    """One UTC calendar day of the automation streak series."""
+
+    date = serializers.DateField(help_text="UTC calendar day")
+    successful_runs = serializers.IntegerField(help_text="Successful job runs on that day")
+
+
+class AutomationStreakSerializer(serializers.Serializer):
+    """Daily successful-run series plus the current consecutive-day streak."""
+
+    streak = serializers.IntegerField(help_text="Consecutive active days ending today")
+    daily = StreakDaySerializer(many=True, help_text="One entry per day in the 30-day window")
+
+
+class OrgStreakOrganizationSerializer(serializers.Serializer):
+    """The organization the org streak is scoped to."""
+
+    id = serializers.IntegerField(help_text="AWX organization ID")
+    name = serializers.CharField(allow_null=True, help_text="Organization name")
+    run_count = serializers.IntegerField(help_text="Successful runs in the window")
+
+
+class OrgStreakSerializer(AutomationStreakSerializer):
+    """Automation streak for the busiest organization in the window."""
+
+    organization = OrgStreakOrganizationSerializer(help_text="Organization the streak belongs to")
+
+
+class OrganizationLeaderboardRowSerializer(serializers.Serializer):
+    """One organization on the org leaderboard."""
+
+    rank = serializers.IntegerField(help_text="1-based position")
+    name = serializers.CharField(allow_null=True, help_text="Organization name")
+    runs = serializers.IntegerField(help_text="Successful runs in the window")
+
+
+class OrganizationLeaderboardSerializer(serializers.Serializer):
+    """Top 10 organizations by successful runs, plus the user's org standing."""
+
+    user_organization_rank = serializers.IntegerField(
+        allow_null=True, help_text="Rank of the current user's organization (None if it has no runs)"
+    )
+    total_organizations = serializers.IntegerField(help_text="Organizations the rank is out of")
+    leaderboard = OrganizationLeaderboardRowSerializer(many=True)
+
+
+class ActivityLevelRowSerializer(serializers.Serializer):
+    """One user on an activity-level leaderboard."""
+
+    rank = serializers.IntegerField(help_text="1-based position")
+    username = serializers.CharField(
+        help_text="Full username for the current user, otherwise the first two letters upper-cased"
+    )
+    runs = serializers.IntegerField(help_text="Value of this activity level's metric")
+    is_current_user = serializers.BooleanField(required=False, help_text="Present and true only for the current user")
+
+
+class ActivityLevelSerializer(serializers.Serializer):
+    """A per-user leaderboard for one activity level (volume / breadth / consistency)."""
+
+    id = serializers.CharField(help_text="Activity level id: volume, breadth or consistency")
+    current_user_rank = serializers.IntegerField(
+        allow_null=True, help_text="Rank of the current user (None if they have no runs)"
+    )
+    total_users = serializers.IntegerField(help_text="Users the rank is out of")
+    leaderboard = ActivityLevelRowSerializer(many=True)
+
+
+class DashboardLeaderboardsSerializer(serializers.Serializer):
+    """Full response for the dashboard leaderboards endpoint (trailing 30 days)."""
+
+    job_runs = serializers.IntegerField(help_text="Total successful job runs in the window")
+    active_organizations = serializers.IntegerField(
+        help_text="Organizations with at least one successful job run in the window"
+    )
+    featured_template = FeaturedTemplateSerializer(allow_null=True)
+    enterprise_streak = AutomationStreakSerializer()
+    org_streak = OrgStreakSerializer(allow_null=True)
+    organization_leaderboard = OrganizationLeaderboardSerializer()
+    org_achievements = serializers.ListField(
+        child=serializers.CharField(), help_text="Earned org achievement ids: sustained, rising, top_tier"
+    )
+    activity_levels = ActivityLevelSerializer(many=True)
+    user_achievements = serializers.ListField(
+        child=serializers.CharField(),
+        help_text="Earned user achievement ids: ignition, week_warrior, month_warrior, explorer, centurion, reliable, accelerator",
+    )
