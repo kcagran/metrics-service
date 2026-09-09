@@ -362,6 +362,36 @@ class TestUserAchievements:
         make_job(day(1), **_me(user))
         assert "reliable" in get(authenticated_client)["user_achievements"]
 
+    def test_reliable_needs_the_20_successes_to_be_consecutive(self, authenticated_client, user):
+        base = day(10)
+        # 15 successes, a failure, then 15 more successes: the longest unbroken
+        # run of successes is 15, so the badge is not earned despite 30 successes.
+        for i in range(15):
+            make_job(base + datetime.timedelta(minutes=i), **_me(user))
+        make_job(base + datetime.timedelta(minutes=15), status=JobStatusChoices.FAILED, **_me(user))
+        for i in range(16, 31):
+            make_job(base + datetime.timedelta(minutes=i), **_me(user))
+        assert "reliable" not in get(authenticated_client)["user_achievements"]
+
+        # Five more back-to-back successes take the trailing run to 20.
+        for i in range(31, 36):
+            make_job(base + datetime.timedelta(minutes=i), **_me(user))
+        assert "reliable" in get(authenticated_client)["user_achievements"]
+
+    @pytest.mark.parametrize(
+        "breaker",
+        [JobStatusChoices.FAILED, JobStatusChoices.ERROR, JobStatusChoices.CANCELED],
+    )
+    def test_reliable_streak_reset_by_any_non_successful_run(self, authenticated_client, user, breaker):
+        base = day(10)
+        for i in range(19):
+            make_job(base + datetime.timedelta(minutes=i), **_me(user))
+        make_job(base + datetime.timedelta(minutes=19), status=breaker, **_me(user))
+        for i in range(20, 39):
+            make_job(base + datetime.timedelta(minutes=i), **_me(user))
+        # 19 successes on either side of the interruption - never 20 in a row.
+        assert "reliable" not in get(authenticated_client)["user_achievements"]
+
     def test_accelerator_needs_more_in_second_half(self, authenticated_client, user):
         make_job(day(1), **_me(user))  # first half (days 1-15)
         make_job(day(20), **_me(user))  # second half (days 16-30)
@@ -546,7 +576,7 @@ class TestResponseShape:
         assert all(len(d["leaderboard"]) == 0 for d in data["activity_levels"])
 
     def test_query_count_is_bounded_regardless_of_data_volume(
-        self, authenticated_client, django_assert_max_num_queries
+        self, authenticated_client, user, django_assert_max_num_queries
     ):
         # Every metric is a rollup of a handful of window-wide GROUP BYs; the
         # query count must not grow with the number of jobs, users or orgs.
@@ -561,5 +591,8 @@ class TestResponseShape:
                         launched_by_id=uid,
                         launched_by_username=f"user{uid}",
                     )
-        with django_assert_max_num_queries(6):  # 5 data queries today, 1 spare for headroom
+            # One run as the authenticated user so the per-user achievements path
+            # (including the "reliable" streak scan) is exercised too.
+            make_job(day(offset), org_id=1, org_name="Org 1", template_id=offset % 5 + 1, **_me(user))
+        with django_assert_max_num_queries(12):  # 11 data queries today, 1 spare for headroom
             assert authenticated_client.get(URL).status_code == 200

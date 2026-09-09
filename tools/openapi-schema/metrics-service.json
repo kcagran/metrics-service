@@ -685,6 +685,37 @@
                 "x-ai-description": "Retrieve single dashboard reports label"
             }
         },
+        "/api/v1/dashboard_reports/leaderboard/": {
+            "get": {
+                "operationId": "dashboard_reports_leaderboard_list",
+                "description": "Aggregated engagement metrics over the last 30 UTC calendar days: overall counts, featured template, enterprise/org automation streaks, the organization leaderboard, per-user activity levels (volume/breadth/consistency) and earned achievements.",
+                "summary": "Dashboard leaderboards, streaks and achievements (trailing 30 days)",
+                "tags": [
+                    "dashboard_reports"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DashboardLeaderboards"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                },
+                "x-ai-description": "List all dashboard reports leaderboard"
+            }
+        },
         "/api/v1/dashboard_reports/organizations/": {
             "get": {
                 "operationId": "dashboard_reports_organizations_retrieve",
@@ -11190,6 +11221,85 @@
     },
     "components": {
         "schemas": {
+            "ActivityLevel": {
+                "type": "object",
+                "description": "A per-user leaderboard for one activity level (volume / breadth / consistency).",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Activity level id: volume, breadth or consistency"
+                    },
+                    "current_user_rank": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "Rank of the current user (None if they have no runs)"
+                    },
+                    "total_users": {
+                        "type": "integer",
+                        "description": "Users the rank is out of"
+                    },
+                    "leaderboard": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ActivityLevelRow"
+                        }
+                    }
+                },
+                "required": [
+                    "current_user_rank",
+                    "id",
+                    "leaderboard",
+                    "total_users"
+                ]
+            },
+            "ActivityLevelRow": {
+                "type": "object",
+                "description": "One user on an activity-level leaderboard.",
+                "properties": {
+                    "rank": {
+                        "type": "integer",
+                        "description": "1-based position"
+                    },
+                    "username": {
+                        "type": "string",
+                        "description": "Full username for the current user, otherwise the first two letters upper-cased"
+                    },
+                    "runs": {
+                        "type": "integer",
+                        "description": "Value of this activity level's metric"
+                    },
+                    "is_current_user": {
+                        "type": "boolean",
+                        "description": "Present and true only for the current user"
+                    }
+                },
+                "required": [
+                    "rank",
+                    "runs",
+                    "username"
+                ]
+            },
+            "AutomationStreak": {
+                "type": "object",
+                "description": "Daily successful-run series plus the current consecutive-day streak.",
+                "properties": {
+                    "streak": {
+                        "type": "integer",
+                        "description": "Consecutive active days ending today"
+                    },
+                    "daily": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StreakDay"
+                        },
+                        "description": "One entry per day in the 30-day window"
+                    }
+                },
+                "required": [
+                    "daily",
+                    "streak"
+                ]
+            },
             "ChartDataItem": {
                 "type": "object",
                 "description": "Serializer for a single time-series data point (timestamp label and integer value).",
@@ -11342,6 +11452,73 @@
                         "default": false
                     }
                 }
+            },
+            "DashboardLeaderboards": {
+                "type": "object",
+                "description": "Full response for the dashboard leaderboards endpoint (trailing 30 days).",
+                "properties": {
+                    "job_runs": {
+                        "type": "integer",
+                        "description": "Total successful job runs in the window"
+                    },
+                    "active_organizations": {
+                        "type": "integer",
+                        "description": "Organizations with at least one successful job run in the window"
+                    },
+                    "featured_template": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/FeaturedTemplate"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "enterprise_streak": {
+                        "$ref": "#/components/schemas/AutomationStreak"
+                    },
+                    "org_streak": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/OrgStreak"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "organization_leaderboard": {
+                        "$ref": "#/components/schemas/OrganizationLeaderboard"
+                    },
+                    "org_achievements": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Earned org achievement ids: sustained, rising, top_tier"
+                    },
+                    "activity_levels": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ActivityLevel"
+                        }
+                    },
+                    "user_achievements": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Earned user achievement ids: ignition, week_warrior, month_warrior, explorer, centurion, reliable, accelerator"
+                    }
+                },
+                "required": [
+                    "active_organizations",
+                    "activity_levels",
+                    "enterprise_streak",
+                    "featured_template",
+                    "job_runs",
+                    "org_achievements",
+                    "org_streak",
+                    "organization_leaderboard",
+                    "user_achievements"
+                ]
             },
             "DashboardReportExportError": {
                 "type": "object",
@@ -11609,6 +11786,31 @@
                     "name"
                 ]
             },
+            "FeaturedTemplate": {
+                "type": "object",
+                "description": "Most-used job template by successful run count in the window.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "AWX template ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Template name"
+                    },
+                    "run_count": {
+                        "type": "integer",
+                        "description": "Successful runs in the window"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "run_count"
+                ]
+            },
             "FilterSet": {
                 "type": "object",
                 "description": "Serializer for FilterSet, exposing name, filter criteria, and default flag.",
@@ -11712,6 +11914,60 @@
                     "status"
                 ]
             },
+            "OrgStreak": {
+                "type": "object",
+                "description": "Automation streak for the busiest organization in the window.",
+                "properties": {
+                    "streak": {
+                        "type": "integer",
+                        "description": "Consecutive active days ending today"
+                    },
+                    "daily": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StreakDay"
+                        },
+                        "description": "One entry per day in the 30-day window"
+                    },
+                    "organization": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/OrgStreakOrganization"
+                            }
+                        ],
+                        "description": "Organization the streak belongs to"
+                    }
+                },
+                "required": [
+                    "daily",
+                    "organization",
+                    "streak"
+                ]
+            },
+            "OrgStreakOrganization": {
+                "type": "object",
+                "description": "The organization the org streak is scoped to.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "AWX organization ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Organization name"
+                    },
+                    "run_count": {
+                        "type": "integer",
+                        "description": "Successful runs in the window"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "run_count"
+                ]
+            },
             "Organization": {
                 "type": "object",
                 "description": "Serializer for the Organization model with RBAC access mixin.",
@@ -11775,6 +12031,56 @@
                 },
                 "required": [
                     "name"
+                ]
+            },
+            "OrganizationLeaderboard": {
+                "type": "object",
+                "description": "Top 10 organizations by successful runs, plus the user's org standing.",
+                "properties": {
+                    "user_organization_rank": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "Rank of the current user's organization (None if it has no runs)"
+                    },
+                    "total_organizations": {
+                        "type": "integer",
+                        "description": "Organizations the rank is out of"
+                    },
+                    "leaderboard": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OrganizationLeaderboardRow"
+                        }
+                    }
+                },
+                "required": [
+                    "leaderboard",
+                    "total_organizations",
+                    "user_organization_rank"
+                ]
+            },
+            "OrganizationLeaderboardRow": {
+                "type": "object",
+                "description": "One organization on the org leaderboard.",
+                "properties": {
+                    "rank": {
+                        "type": "integer",
+                        "description": "1-based position"
+                    },
+                    "name": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Organization name"
+                    },
+                    "runs": {
+                        "type": "integer",
+                        "description": "Successful runs in the window"
+                    }
+                },
+                "required": [
+                    "name",
+                    "rank",
+                    "runs"
                 ]
             },
             "OrganizationRequest": {
@@ -13542,6 +13848,25 @@
                 "required": [
                     "role_definition",
                     "user_ansible_id"
+                ]
+            },
+            "StreakDay": {
+                "type": "object",
+                "description": "One UTC calendar day of the automation streak series.",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "UTC calendar day"
+                    },
+                    "successful_runs": {
+                        "type": "integer",
+                        "description": "Successful job runs on that day"
+                    }
+                },
+                "required": [
+                    "date",
+                    "successful_runs"
                 ]
             },
             "SubscriptionCost": {

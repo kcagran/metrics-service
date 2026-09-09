@@ -39,13 +39,17 @@ def _user_achievements(
     current_user_id: int | None,
     today: date,
     window_start: date,
+    now_utc: datetime,
 ) -> list[str]:
     """Return the achievement ids the current user has earned in the window.
 
-    Everything is aggregated in the database rather than materializing the
-    user's (potentially large) run history in Python. ``successful_runs`` is
-    already bounded to the shared ``window_start``...now window (the
-    leaderboard only ever considers successful runs).
+    Counts and distinct tallies are aggregated in the database rather than
+    materializing the user's (potentially large) run history in Python. The
+    "reliable" streak is the one exception - it needs run order, so it scans the
+    ordered, single-column status list of the user's finished runs (see
+    ``_longest_successful_run_streak``). ``successful_runs`` is already bounded to
+    the shared ``window_start``...now window (the leaderboard only ever considers
+    successful runs).
     """
     if current_user_id is None:
         return []
@@ -72,9 +76,9 @@ def _user_achievements(
         "month_warrior": len(active_days) == window_days,
         "explorer": distinct_templates >= 5,
         "centurion": total_runs >= 100,
-        # Only successful runs are tracked, so "consecutive successful with no
-        # failures" reduces to a count of successful runs.
-        "reliable": total_runs >= 20,
+        # 20+ successful runs back-to-back with no failed/errored/canceled run
+        # between them, anywhere in the window.
+        "reliable": _longest_successful_run_streak(current_user_id, window_start_dt, now_utc) >= _RELIABLE_STREAK,
         "accelerator": (total_runs - first_half) > first_half,
     }
     return [achievement for achievement in _ACHIEVEMENTS if earned[achievement]]
@@ -107,6 +111,47 @@ def _org_achievements(org_streak: dict[str, Any] | None, org_rank: int | None) -
         "top_tier": org_rank is not None and org_rank <= 3,
     }
     return [achievement for achievement in _ORG_ACHIEVEMENTS if earned[achievement]]
+
+
+# Job statuses that represent a finished run with a definitive outcome. Anything
+# here that is not ``SUCCESSFUL`` (a failure, an error or a cancellation) breaks a
+# user's run of consecutive successful jobs.
+_OUTCOME_STATUSES: tuple[str, ...] = (
+    JobStatusChoices.SUCCESSFUL,
+    JobStatusChoices.FAILED,
+    JobStatusChoices.ERROR,
+    JobStatusChoices.CANCELED,
+)
+
+# Consecutive successful runs required for the "reliable" achievement.
+_RELIABLE_STREAK = 20
+
+
+def _longest_successful_run_streak(current_user_id: int, since: datetime, until: datetime) -> int:
+    """Length of the longest unbroken run of successful jobs for the user.
+
+    Consecutiveness is judged over the user's finished runs in the window ordered
+    by ``finished``: any non-successful outcome (failed, errored or canceled)
+    between two successes resets the count, so 10 successes, a failure, then 10
+    successes is a streak of 10, not 20. Only the ordered status column is
+    fetched - one short row per finished run for this single user - and the tally
+    is one linear pass.
+    """
+    statuses = (
+        JobData.objects.filter(
+            launched_by_id=current_user_id,
+            finished__gte=since,
+            finished__lte=until,
+            status__in=_OUTCOME_STATUSES,
+        )
+        .order_by("finished", "job_id")
+        .values_list("status", flat=True)
+    )
+    longest = current = 0
+    for run_status in statuses:
+        current = current + 1 if run_status == JobStatusChoices.SUCCESSFUL else 0
+        longest = max(longest, current)
+    return longest
 
 
 def _max_consecutive_days(days: set[date]) -> int:
@@ -192,6 +237,10 @@ class DashboardLeaderboardsViewSet(ReadOnlyModelViewSet):
     serializer_class = DashboardLeaderboardsSerializer
     # Never used (list/retrieve are overridden) — satisfies schema tooling only.
     queryset = JobData.objects.none()
+    # list() is fully overridden and ignores query params; drop the default
+    # (DAB) filter/ordering/search backends so schema generation does not expose
+    # unsupported JobData filter parameters on this endpoint.
+    filter_backends = []
 
     @extend_schema(
         summary="Dashboard leaderboards, streaks and achievements (trailing 30 days)",
@@ -386,7 +435,7 @@ class DashboardLeaderboardsViewSet(ReadOnlyModelViewSet):
             for metric in ("volume", "breadth", "consistency")
         ]
 
-        stats["user_achievements"] = _user_achievements(successful_runs, current_user_id, today, window_start)
+        stats["user_achievements"] = _user_achievements(successful_runs, current_user_id, today, window_start, now_utc)
         return Response(self.get_serializer(stats).data)
 
     @extend_schema(exclude=True)
